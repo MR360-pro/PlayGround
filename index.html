@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#08070e" />
+  <meta name="description" content="Shadow Blossom: Duel of Fates — a hand-drawn 2D street fighter duel with three signature special moves." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23100c16'/%3E%3Ctext x='32' y='45' font-size='38' text-anchor='middle' fill='%23e8c477'%3E%E5%BD%B1%3C/text%3E%3C/svg%3E" />
+  <title>Shadow Blossom — Duel of Fates</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="app">
+    <div id="stage-shell">
+      <div id="screen-wrap">
+        <canvas id="game" width="1280" height="720" aria-label="Shadow Blossom fighting game"></canvas>
+        <div class="screen-fx" aria-hidden="true"></div>
+        <div class="screen-buttons" id="screen-buttons">
+          <button class="icon-btn" id="sound-btn" aria-label="Toggle sound" title="Sound on/off">
+            <span class="icon-sound" aria-hidden="true">♪</span>
+          </button>
+          <button class="icon-btn" id="pause-btn" aria-label="Pause game" title="Pause">
+            <span aria-hidden="true">❚❚</span>
+          </button>
+        </div>
+        <div class="hint-bar" id="hint-bar" aria-hidden="true">
+          <span><b>A</b><b>D</b> move</span><span><b>W</b> jump</span><span><b>S</b> crouch</span>
+          <span><b>J</b> punch</span><span><b>K</b> kick</span><span><b>U</b><b>I</b><b>O</b> specials</span><span><b>SPACE</b> super</span>
+        </div>
+      </div>
+      <div class="touch-controls" id="touch-controls" aria-label="Touch controls">
+        <div class="touch-pad">
+          <button class="tbtn dir up" data-action="up" aria-label="Jump">▲</button>
+          <button class="tbtn dir left" data-action="left" aria-label="Move left">◀</button>
+          <button class="tbtn dir right" data-action="right" aria-label="Move right">▶</button>
+          <button class="tbtn dir down" data-action="down" aria-label="Crouch">▼</button>
+          <div class="pad-core" aria-hidden="true"></div>
+        </div>
+        <div class="touch-actions">
+          <div class="special-row">
+            <button class="tbtn sp sp1" data-action="s1" aria-label="Special 1, projectile"><span class="sp-key">1</span><span class="sp-name" id="sp1-name">FIRE</span></button>
+            <button class="tbtn sp sp2" data-action="s2" aria-label="Special 2, rising attack"><span class="sp-key">2</span><span class="sp-name" id="sp2-name">RISE</span></button>
+            <button class="tbtn sp sp3" data-action="s3" aria-label="Special 3, spinning attack"><span class="sp-key">3</span><span class="sp-name" id="sp3-name">SPIN</span></button>
+          </div>
+          <div class="strike-row">
+            <button class="tbtn strike punch" data-action="punch" aria-label="Punch"><span>拳</span><small>PUNCH</small></button>
+            <button class="tbtn strike kick" data-action="kick" aria-label="Kick"><span>脚</span><small>KICK</small></button>
+            <button class="tbtn super" data-action="super" aria-label="Super move"><span>超</span><small>SUPER</small></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TITLE -->
+    <section class="overlay title-overlay" id="title-screen">
+      <div class="title-inner">
+        <div class="brand">
+          <span class="brand-kanji" aria-hidden="true">影桜</span>
+          <span class="brand-en">SHADOW BLOSSOM</span>
+        </div>
+        <h1 class="logo">
+          <span class="logo-top">DUEL</span>
+          <span class="logo-bottom">OF FATES</span>
+        </h1>
+        <p class="tagline">Two warriors. One sunset. No mercy.</p>
+        <div class="menu">
+          <button class="menu-btn primary" id="btn-cpu" data-mode="cpu">
+            <span class="menu-glyph">⚔</span>
+            <span class="menu-copy"><b>ARCADE DUEL</b><small>Battle the rival AI</small></span>
+            <span class="menu-arrow">›</span>
+          </button>
+          <button class="menu-btn" id="btn-local" data-mode="local">
+            <span class="menu-glyph">双</span>
+            <span class="menu-copy"><b>LOCAL DUEL</b><small>Two players, one keyboard</small></span>
+            <span class="menu-arrow">›</span>
+          </button>
+          <button class="menu-btn ghost" id="btn-how">
+            <span class="menu-glyph">?</span>
+            <span class="menu-copy"><b>HOW TO FIGHT</b><small>Moves, specials &amp; controls</small></span>
+            <span class="menu-arrow">›</span>
+          </button>
+        </div>
+        <div class="title-foot">
+          <span>BEST OF 3 ROUNDS</span><span class="dot">·</span><span>THREE SIGNATURE SPECIALS</span><span class="dot">·</span><span>60 SECOND ROUNDS</span>
+        </div>
+      </div>
+      <div class="title-credit">A hand-drawn canvas duel</div>
+    </section>
+
+    <!-- CHARACTER SELECT -->
+    <section class="overlay select-overlay hidden" id="select-screen">
+      <div class="select-head">
+        <div class="select-eyebrow" id="select-eyebrow">ARCADE DUEL</div>
+        <h2 id="select-title">CHOOSE YOUR WARRIOR</h2>
+        <p id="select-subtitle">Select a fighter to begin the duel.</p>
+      </div>
+      <div class="fighter-grid">
+        <button class="fighter-card" data-char="kaito" aria-label="Choose Kaito">
+          <div class="card-glow kaito-glow"></div>
+          <canvas class="card-canvas" width="280" height="330" data-preview="kaito"></canvas>
+          <div class="card-tag card-tag-p1 hidden">P1</div>
+          <div class="card-tag card-tag-p2 hidden">P2</div>
+          <div class="card-body">
+            <div class="card-name">KAITO <span>火</span></div>
+            <div class="card-title">The Crimson Dragon</div>
+            <div class="card-specials">
+              <span><i>1</i> Dragon Fire</span>
+              <span><i>2</i> Rising Fang</span>
+              <span><i>3</i> Cyclone Lotus</span>
+            </div>
+          </div>
+        </button>
+        <button class="fighter-card akane" data-char="akane" aria-label="Choose Akane">
+          <div class="card-glow akane-glow"></div>
+          <canvas class="card-canvas" width="280" height="330" data-preview="akane"></canvas>
+          <div class="card-tag card-tag-p1 hidden">P1</div>
+          <div class="card-tag card-tag-p2 hidden">P2</div>
+          <div class="card-body">
+            <div class="card-name">AKANE <span>氷</span></div>
+            <div class="card-title">The Winter Blade</div>
+            <div class="card-specials">
+              <span><i>1</i> Frost Shard</span>
+              <span><i>2</i> Thunder Rise</span>
+              <span><i>3</i> Blossom Tempest</span>
+            </div>
+          </div>
+        </button>
+      </div>
+      <div class="select-foot">
+        <button class="text-btn" id="select-back">‹ BACK</button>
+        <div class="select-tip" id="select-tip">Tip: hold <b>back</b> to guard. Three special buttons — or classic motions.</div>
+      </div>
+    </section>
+
+    <!-- HOW TO PLAY -->
+    <section class="overlay modal-overlay hidden" id="how-screen">
+      <div class="modal">
+        <div class="modal-head">
+          <div>
+            <div class="select-eyebrow">THE WAY OF THE FIST</div>
+            <h2>HOW TO FIGHT</h2>
+          </div>
+          <button class="close-btn" id="how-close" aria-label="Close">×</button>
+        </div>
+        <div class="how-grid">
+          <div class="how-col">
+            <h3>MOVEMENT</h3>
+            <div class="key-row"><span class="keys"><b>A</b><b>D</b></span><span>Walk · hold <b>back</b> to block</span></div>
+            <div class="key-row"><span class="keys"><b>W</b></span><span>Jump</span></div>
+            <div class="key-row"><span class="keys"><b>S</b></span><span>Crouch · low guard</span></div>
+            <h3>STRIKES</h3>
+            <div class="key-row"><span class="keys"><b>J</b></span><span>Punch — fast, safe</span></div>
+            <div class="key-row"><span class="keys"><b>K</b></span><span>Kick — slower, heavy</span></div>
+            <div class="key-row"><span class="keys"><b>S</b><b>+</b><b>K</b></span><span>Low sweep — knocks down</span></div>
+          </div>
+          <div class="how-col">
+            <h3>THREE SPECIALS</h3>
+            <div class="key-row special-row-how"><span class="keys"><b>U</b></span><span><b>Special I</b> — projectile<br><small>also ↓↘→ + Punch</small></span></div>
+            <div class="key-row special-row-how"><span class="keys"><b>I</b></span><span><b>Special II</b> — rising strike<br><small>also →↓↘ + Punch</small></span></div>
+            <div class="key-row special-row-how"><span class="keys"><b>O</b></span><span><b>Special III</b> — spinning advance<br><small>also ↓↙← + Kick</small></span></div>
+            <h3>SUPER</h3>
+            <div class="key-row"><span class="keys wide"><b>SPACE</b></span><span>Unleash your super when the spirit meter is full.</span></div>
+            <h3>PLAYER 2</h3>
+            <div class="key-row"><span class="keys"><b>ARROWS</b></span><span>Move · <b>NUM 1</b> punch · <b>NUM 2</b> kick<br><small>laptop: <b>,</b> punch · <b>.</b> kick</small></span></div>
+            <div class="key-row"><span class="keys"><b>NUM 4</b><b>5</b><b>6</b></span><span>Three specials · <b>NUM 0</b> super<br><small>laptop: <b>;</b> <b>'</b> <b>/</b> specials · <b>\</b> super</small></span></div>
+          </div>
+        </div>
+        <div class="rules-line">First to two rounds wins. Blocking still chips specials. Build spirit by landing and taking hits.</div>
+      </div>
+    </section>
+
+    <!-- PAUSE -->
+    <section class="overlay modal-overlay hidden" id="pause-screen">
+      <div class="modal pause-modal">
+        <div class="select-eyebrow">INTERMISSION</div>
+        <h2>PAUSED</h2>
+        <div class="pause-buttons">
+          <button class="menu-btn primary" id="btn-resume"><span class="menu-copy"><b>RESUME</b><small>Return to the duel</small></span><span class="menu-arrow">›</span></button>
+          <button class="menu-btn" id="btn-restart"><span class="menu-copy"><b>RESTART</b><small>Begin the match again</small></span><span class="menu-arrow">›</span></button>
+          <button class="menu-btn ghost" id="btn-quit"><span class="menu-copy"><b>QUIT TO TITLE</b><small>Abandon this duel</small></span><span class="menu-arrow">›</span></button>
+        </div>
+        <div class="pause-tip">Press <b>ESC</b> or <b>P</b> to resume</div>
+      </div>
+    </section>
+
+    <!-- RESULT -->
+    <section class="overlay result-overlay hidden" id="result-screen">
+      <div class="result-inner">
+        <div class="result-eyebrow" id="result-eyebrow">THE DUEL IS OVER</div>
+        <div class="result-winner" id="result-winner">KAITO</div>
+        <div class="result-sub" id="result-sub">VICTORY</div>
+        <div class="result-score" id="result-score">2 — 0</div>
+        <div class="result-quote" id="result-quote">“The flame remembers.”</div>
+        <div class="result-buttons">
+          <button class="menu-btn primary" id="btn-rematch"><span class="menu-copy"><b>REMATCH</b><small>Run it back</small></span><span class="menu-arrow">›</span></button>
+          <button class="menu-btn" id="btn-change"><span class="menu-copy"><b>CHANGE FIGHTER</b><small>Pick a new warrior</small></span><span class="menu-arrow">›</span></button>
+          <button class="menu-btn ghost" id="btn-title"><span class="menu-copy"><b>TITLE</b><small>Return to the menu</small></span><span class="menu-arrow">›</span></button>
+        </div>
+      </div>
+    </section>
+
+    <div class="rotate-hint" id="rotate-hint">Rotate for a wider arena</div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
